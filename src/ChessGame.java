@@ -14,22 +14,17 @@ public class ChessGame {
         gameBoard.initializeBoardLayout();
 
 //        while (!checkmate && !stalemate) {
-        for (Piece[] i : gameBoard.getBoardLayout()) {
-            for (Piece j : i) {
-                System.out.print(j);
-                System.out.print(", ");
-            }
-            System.out.println();
-        }
+        gameBoard.printBoardLayout();
 
         System.out.println("\n\n\n");
-        Map<int[], List<int[]>> allMoves = gameBoard.getAllPiecesLegalMoves();
+        Map<int[], List<Board>> allMoves = gameBoard.getAllLegalBoardStates();
         System.out.println("\n\n\n\n");
-        for (Map.Entry<int[], List<int[]>> entry : allMoves.entrySet()) {
-            System.out.print(entry.getKey()[0] + "," + entry.getKey()[1] + ":  ");
+        for (Map.Entry<int[], List<Board>> entry : allMoves.entrySet()) {
+            System.out.println(entry.getKey()[0] + "," + entry.getKey()[1] + ":  ");
 
-            for (int[] currentMove : entry.getValue()) {
-                System.out.print("(" + currentMove[0] + "," + currentMove[1] + "),  ");
+            for (Board currentMove : entry.getValue()) {
+                currentMove.printBoardLayout();
+                System.out.println();
             }
             System.out.println();
         }

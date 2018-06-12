@@ -36,9 +36,31 @@ class Board {
         return mapOfPieceMoves;
     }
 
+    Map<int[], List<Board>> getAllPossibleBoardStates() {
+        Map<int[], List<Board>> mapOfBoardStates = new HashMap<>();
+
+        for (int i = 0; i < boardLayout.length; i++) {
+            for (int j = 0; j < boardLayout[i].length; j++) {
+                if (boardLayout[i][j] != null && boardLayout[i][j].getColor() == turnPlayerColor) {
+                    int[] piecePosition = new int[]{i, j};
+                    List<Board> possibleBoards = new ArrayList<>();
+                    Piece currentPiece = boardLayout[i][j];
+
+                    List<int[]> possibleMoves = currentPiece.getPieceType().getPossibleMoves(i, j, this,
+                            currentPiece.getHasMoved(), false);
+                    for (int[] move : possibleMoves) {
+                        possibleBoards.add(movePieceOnNewBoard(i, j, move[0], move[1]));
+                    }
+                    mapOfBoardStates.put(piecePosition, possibleBoards);
+                }
+            }
+        }
+        return mapOfBoardStates;
+    }
+
     Map<int[], List<int[]>> getAllPiecesLegalMoves() {
-        Map<int[], List<int[]>> mapOfLegalMoves = new HashMap<>();
         Map<int[], List<int[]>> mapOfPieceMoves = getAllPiecesPossibleMoves();
+        Map<int[], List<int[]>> mapOfLegalMoves = new HashMap<>();
 
         for (Map.Entry<int[], List<int[]>> entry : mapOfPieceMoves.entrySet()) {
             int[] currentCoordinates = entry.getKey();
@@ -95,6 +117,15 @@ class Board {
             mapOfLegalMoves.put(new int[]{currentRowOfPiece, currentColumnOfPiece}, possibleMovesWithoutCheck);
         }
         return mapOfLegalMoves;
+    }
+
+    Map<int[], List<Board>> getAllLegalBoardStates() {
+        Map<int[], List<Board>> mapOfBoardStates = getAllPossibleBoardStates();
+
+        for (List<Board> currentBoardList : mapOfBoardStates.values()) {
+            currentBoardList.removeIf(Board::isCheckmate);
+        }
+        return mapOfBoardStates;
     }
 
 //        for (int i = 0; i < boardLayout.length; i++) {
@@ -367,7 +398,7 @@ class Board {
         for (int newBoardRow = 0; newBoardRow < 8; newBoardRow++) {
             for (int newBoardColumn = 0; newBoardColumn < 8; newBoardColumn++) {
                 if (newBoardRow == targetRow && newBoardColumn == targetColumn) {
-                    newBoard.boardLayout[newBoardRow][newBoardColumn] = boardLayout[targetRow][targetColumn];
+                    newBoard.boardLayout[newBoardRow][newBoardColumn] = boardLayout[currentRow][currentColumn];
                 } else if (newBoardRow == currentRow && newBoardColumn == currentColumn) {
                     newBoard.boardLayout[newBoardRow][newBoardColumn] = null;
                 } else {
@@ -431,5 +462,15 @@ class Board {
 
     public void setBlackKingPosition(int[] blackKingPosition) {
         this.blackKingPosition = blackKingPosition;
+    }
+
+    public void printBoardLayout() {
+        for (Piece[] currentRow : boardLayout) {
+            for (Piece j : currentRow) {
+                System.out.print(j);
+                System.out.print(", ");
+            }
+            System.out.println();
+        }
     }
 }

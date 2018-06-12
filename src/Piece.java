@@ -8,7 +8,7 @@ class Piece {
     private boolean hasMoved;
 
     public enum Color {
-        WHITE("White"), BLACK("Black");
+        WHITE("W"), BLACK("B");
 
         private String titleCaseColor;
         Color(String titleCaseColor) {
@@ -22,7 +22,7 @@ class Piece {
     }
 
     public enum PieceType {
-        PAWN("Pawn") {
+        PAWN("P") {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard, boolean thisPieceHasMoved,
                                                 boolean isCurrentlyTestingCheck) {
@@ -61,7 +61,7 @@ class Piece {
             }
         },
 
-        ROOK("Rook") {
+        ROOK("R") {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard, boolean thisPieceHasMoved,
                                                 boolean isCurrentlyTestingCheck) {
@@ -69,7 +69,7 @@ class Piece {
             }
         },
 
-        KNIGHT("Knight") {
+        KNIGHT("K") {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard, boolean thisPieceHasMoved,
                                                 boolean isCurrentlyTestingCheck)  {
@@ -91,7 +91,7 @@ class Piece {
             }
         },
 
-        BISHOP("Bishop") {
+        BISHOP("B") {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard, boolean thisPieceHasMoved,
                                                 boolean isCurrentlyTestingCheck) {
@@ -99,7 +99,7 @@ class Piece {
             }
         },
 
-        QUEEN("Queen") {
+        QUEEN("Q") {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard, boolean thisPieceHasMoved,
                                                 boolean isCurrentlyTestingCheck)  {
@@ -109,7 +109,7 @@ class Piece {
             }
         },
 
-        KING("King") {
+        KING("K") {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard, boolean thisPieceHasMoved,
                                                 boolean isCurrentlyTestingCheck)  {
@@ -169,7 +169,7 @@ class Piece {
 
     @Override
     public String toString() {
-        return color + " " + pieceType;
+        return "[" + color + pieceType + "]";
     }
 
 
