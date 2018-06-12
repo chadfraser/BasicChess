@@ -1,7 +1,7 @@
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Arrays;
+//import java.util.Arrays;
 
 public class ChessGame {
     static boolean checkmate;
@@ -14,7 +14,7 @@ public class ChessGame {
         gameBoard.initializeBoardLayout();
 
 //        while (!checkmate && !stalemate) {
-        for (Piece[] i : gameBoard.boardLayout) {
+        for (Piece[] i : gameBoard.getBoardLayout()) {
             for (Piece j : i) {
                 System.out.print(j);
                 System.out.print(", ");
@@ -25,14 +25,14 @@ public class ChessGame {
         System.out.println("\n\n\n");
         Map<int[], List<int[]>> allMoves = gameBoard.getAllPiecesLegalMoves();
         System.out.println("\n\n\n\n");
-//        for (Map.Entry<int[], List<int[]>> entry : allMoves.entrySet()) {
-//            System.out.println(entry.getKey()[0] + "," + entry.getKey()[1] + ":  ");
-//
-//            for (int[] currentMove : entry.getValue()) {
-//                System.out.print("(" + currentMove[0] + "," + currentMove[1] + "),  ");
-//            }
-//            System.out.println();
-//        }
+        for (Map.Entry<int[], List<int[]>> entry : allMoves.entrySet()) {
+            System.out.print(entry.getKey()[0] + "," + entry.getKey()[1] + ":  ");
+
+            for (int[] currentMove : entry.getValue()) {
+                System.out.print("(" + currentMove[0] + "," + currentMove[1] + "),  ");
+            }
+            System.out.println();
+        }
 //        System.out.println(allMoves.size());
 //        System.out.println("**");
     }
