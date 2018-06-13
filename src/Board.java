@@ -16,7 +16,8 @@ class Board {
         previousBoardLayout = new Piece[8][8];
     }
 
-    Board(Piece.Color turnPlayerColor, int[] whiteKingPosition, int[] blackKingPosition, Piece[][] previousBoardLayout) {
+    private Board(Piece.Color turnPlayerColor, int[] whiteKingPosition, int[] blackKingPosition,
+                  Piece[][] previousBoardLayout) {
         this.turnPlayerColor = turnPlayerColor;
         this.whiteKingPosition = whiteKingPosition;
         this.blackKingPosition = blackKingPosition;
@@ -24,15 +25,14 @@ class Board {
         boardLayout = new Piece[8][8];
     }
 
-    Map<int[], List<int[]>> getAllPiecesPossibleMoves() {
+    private Map<int[], List<int[]>> getAllPiecesPossibleMoves() {
         Map<int[], List<int[]>> mapOfPieceMoves = new HashMap<>();
 
         for (int i = 0; i < boardLayout.length; i++) {
             for (int j = 0; j < boardLayout[i].length; j++) {
                 if (boardLayout[i][j] != null && boardLayout[i][j].getColor() == turnPlayerColor) {
                     Piece currentPiece = boardLayout[i][j];
-                    List<int[]> possibleMoves = currentPiece.getPieceType().getPossibleMoves(i, j, this,
-                            currentPiece.getHasMoved(), false);
+                    List<int[]> possibleMoves = currentPiece.getPieceType().getPossibleMoves(i, j, this, false);
                     mapOfPieceMoves.put(new int[]{i, j}, possibleMoves);
                 }
             }
@@ -40,7 +40,7 @@ class Board {
         return mapOfPieceMoves;
     }
 
-    Map<int[], List<Board>> getAllPossibleBoardStates() {
+    private Map<int[], List<Board>> getAllPossibleBoardStates() {
         Map<int[], List<Board>> mapOfBoardStates = new HashMap<>();
 
         for (int i = 0; i < boardLayout.length; i++) {
@@ -50,8 +50,7 @@ class Board {
                     List<Board> possibleBoards = new ArrayList<>();
                     Piece currentPiece = boardLayout[i][j];
 
-                    List<int[]> possibleMoves = currentPiece.getPieceType().getPossibleMoves(i, j, this,
-                            currentPiece.getHasMoved(), false);
+                    List<int[]> possibleMoves = currentPiece.getPieceType().getPossibleMoves(i, j, this, false);
                     for (int[] move : possibleMoves) {
                         possibleBoards.add(movePieceOnNewBoard(i, j, move[0], move[1], turnPlayerColor));
                     }
@@ -62,36 +61,30 @@ class Board {
         return mapOfBoardStates;
     }
 
-    Map<int[], List<int[]>> getAllPiecesLegalMoves() {
+    private Map<int[], List<int[]>> getAllPiecesLegalMoves() {
         Map<int[], List<int[]>> mapOfPieceMoves = getAllPiecesPossibleMoves();
         Map<int[], List<int[]>> mapOfLegalMoves = new HashMap<>();
 
         for (Map.Entry<int[], List<int[]>> entry : mapOfPieceMoves.entrySet()) {
-            int[] currentCoordinates = entry.getKey();
-            int currentRowOfPiece = currentCoordinates[0];
-            int currentColumnOfPiece = currentCoordinates[1];
-            Piece currentPiece = boardLayout[currentCoordinates[0]][currentCoordinates[1]];
+            int currentRowOfPiece = entry.getKey()[0];
+            int currentColumnOfPiece = entry.getKey()[1];
+
             List<int[]> possibleMovesWithoutCheck = new ArrayList<>();
             List<int[]> possibleMoves = entry.getValue();
-//            System.out.println(currentPiece);
-//
-//            System.out.print(currentRowOfPiece + "," + currentColumnOfPiece + ": ");
-//            for (int[] currentMove : possibleMoves) {
-//                System.out.print("(" + currentMove[0] + "," + currentMove[1] + "),  ");
-//            }
-//            System.out.println();
+
             for (int[] currentMove : possibleMoves) {
                 int targetRow = currentMove[0];
                 int targetColumn = currentMove[1];
 
                 Board newBoard = movePieceOnNewBoard(currentRowOfPiece, currentColumnOfPiece, targetRow, targetColumn,
-                        getOppositeTurnPlayerColor(turnPlayerColor));
-                newBoard.turnPlayerColor = turnPlayerColor;
+                        turnPlayerColor);
                 if (!newBoard.isKingInCheck()) {
                     possibleMovesWithoutCheck.add(currentMove);
                 }
             }
-            mapOfLegalMoves.put(new int[]{currentRowOfPiece, currentColumnOfPiece}, possibleMovesWithoutCheck);
+            if (!possibleMovesWithoutCheck.isEmpty()) {
+                mapOfLegalMoves.put(new int[]{currentRowOfPiece, currentColumnOfPiece}, possibleMovesWithoutCheck);
+            }
         }
         return mapOfLegalMoves;
     }
@@ -105,101 +98,55 @@ class Board {
         return mapOfBoardStates;
     }
 
-    boolean areThereAnyLegalMoves() {
+    private boolean areThereNoLegalMoves() {
         Map<int[], List<int[]>> mapOfPieceMoves = getAllPiecesPossibleMoves();
 
         for (Map.Entry<int[], List<int[]>> entry : mapOfPieceMoves.entrySet()) {
-            int[] currentCoordinates = entry.getKey();
-            int currentRowOfPiece = currentCoordinates[0];
-            int currentColumnOfPiece = currentCoordinates[1];
-            Piece currentPiece = boardLayout[currentCoordinates[0]][currentCoordinates[1]];
-            List<int[]> possibleMovesWithoutCheck = new ArrayList<>();
+            int currentRowOfPiece = entry.getKey()[0];
+            int currentColumnOfPiece = entry.getKey()[1];
+
             List<int[]> possibleMoves = entry.getValue();
 
             for (int[] currentMove : possibleMoves) {
-                int rowToMoveTo = currentMove[0];
-                int columnToMoveTo = currentMove[1];
+                int targetRow = currentMove[0];
+                int targetColumn = currentMove[1];
 
-                Board newBoard = new Board(getOppositeTurnPlayerColor(turnPlayerColor), whiteKingPosition,
-                        blackKingPosition, boardLayout);
-                if (currentPiece.getPieceType() == Piece.PieceType.KING) {
-                    if (turnPlayerColor == Piece.Color.WHITE) {
-                        newBoard.whiteKingPosition = currentMove;
-                    } else {
-                        newBoard.blackKingPosition = currentMove;
-                    }
-                }
-
-                for (int newBoardRow = 0; newBoardRow < 8; newBoardRow++) {
-                    for (int newBoardColumn = 0; newBoardColumn < 8; newBoardColumn++) {
-                        if (newBoardRow == rowToMoveTo && newBoardColumn == columnToMoveTo) {
-                            newBoard.boardLayout[newBoardRow][newBoardColumn] = boardLayout[currentRowOfPiece][currentColumnOfPiece];
-                        } else if (newBoardRow == currentRowOfPiece && newBoardColumn == currentColumnOfPiece) {
-                            newBoard.boardLayout[newBoardRow][newBoardColumn] = null;
-                        } else {
-                            newBoard.boardLayout[newBoardRow][newBoardColumn] = boardLayout[newBoardRow][newBoardColumn];
-                        }
-                    }
-                }
-                newBoard.turnPlayerColor = turnPlayerColor;
+                Board newBoard = movePieceOnNewBoard(currentRowOfPiece, currentColumnOfPiece, targetRow, targetColumn,
+                        turnPlayerColor);
                 if (!newBoard.isKingInCheck()) {
-                    return true;
+                    return false;
                 }
             }
         }
-        return false;
+        return true;
     }
 
     private boolean isKingInCheck() {
-        int[] kingPosition;
-        Piece currentPiece;
-
         if (turnPlayerColor == Piece.Color.WHITE) {
-            kingPosition = whiteKingPosition;
+            return isSquareUnderAttack(whiteKingPosition[0], whiteKingPosition[1]);
         } else {
-            kingPosition = blackKingPosition;
+            return isSquareUnderAttack(blackKingPosition[0], blackKingPosition[1]);
         }
-        turnPlayerColor = getOppositeTurnPlayerColor(turnPlayerColor);
-
-        for (int i = 0; i < boardLayout.length; i++) {
-            for (int j = 0; j < boardLayout[i].length; j++) {
-                if (boardLayout[i][j] != null && boardLayout[i][j].getColor() == turnPlayerColor) {
-                    currentPiece = boardLayout[i][j];
-                    List<int[]> possibleMoves = currentPiece.getPieceType().getPossibleMoves(i, j, this,
-                            currentPiece.getHasMoved(), true);
-
-                    for (int[] currentMove : possibleMoves) {
-                        if (Arrays.equals(kingPosition, currentMove)) {
-                            turnPlayerColor = getOppositeTurnPlayerColor(turnPlayerColor);
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        turnPlayerColor = getOppositeTurnPlayerColor(turnPlayerColor);
-        return false;
     }
 
     private boolean isCheckmate() {
-        return (isKingInCheck() && !areThereAnyLegalMoves());
+        return (isKingInCheck() && areThereNoLegalMoves());
     }
 
     private boolean isStalemate() {
-        return (!isKingInCheck() && !areThereAnyLegalMoves());
+        return (!isKingInCheck() && areThereNoLegalMoves());
     }
 
     private boolean isSquareUnderAttack(int row, int column) {
         turnPlayerColor = getOppositeTurnPlayerColor(turnPlayerColor);
-        for (int i = 0; i <= 7; i ++) {
-            for (int j = 0; j <= 7; j ++) {
+        for (int i = 0; i <= 7; i++) {
+            for (int j = 0; j <= 7; j++) {
                 if (boardLayout[i][j] == null || boardLayout[i][j].getColor() != turnPlayerColor) {
                     continue;
                 }
-                List<int[]> pieceMoves = boardLayout[i][j].getPieceType().getPossibleMoves(i, j, this,
-                        boardLayout[i][j].getHasMoved(), true);
-                for (int[] index : pieceMoves) {
-                    if (index[0] == row && index[1] == column) {
+                List<int[]> pieceMoves = boardLayout[i][j].getPieceType().getPossibleMoves(i, j, this, true);
+                for (int[] currentMove : pieceMoves) {
+                    if (currentMove[0] == row && currentMove[1] == column) {
                         turnPlayerColor = getOppositeTurnPlayerColor(turnPlayerColor);
                         return true;
                     }
@@ -211,7 +158,7 @@ class Board {
     }
 
 
-    private void addMoveIfLegal(int targetRow, int targetColumn,List<int[]> possibleMoves) {
+    private void addMoveIfLegal(int targetRow, int targetColumn, List<int[]> possibleMoves) {
         if (targetRow < 0 || targetRow > 7 || targetColumn < 0 || targetColumn > 7) {
             return;
         }
@@ -293,13 +240,13 @@ class Board {
         }
 
         playerKing = boardLayout[kingRow][kingColumn];
-        if (playerKing.getHasMoved() || isKingInCheck()) {
+        if (playerKing.getPieceType() != Piece.PieceType.KING_UNMOVED || isKingInCheck()) {
             return false;
         }
 
         Piece leftCornerSquare = boardLayout[kingRow][0];
-        if (leftCornerSquare == null || leftCornerSquare.getPieceType() != Piece.PieceType.ROOK ||
-                leftCornerSquare.getHasMoved() || leftCornerSquare.getColor() != turnPlayerColor) {
+        if (leftCornerSquare == null || leftCornerSquare.getPieceType() != Piece.PieceType.ROOK_UNMOVED ||
+                leftCornerSquare.getColor() != turnPlayerColor) {
             return false;
         }
 
@@ -325,13 +272,13 @@ class Board {
         }
 
         playerKing = boardLayout[kingRow][kingColumn];
-        if (playerKing.getHasMoved() || isKingInCheck()) {
+        if (playerKing.getPieceType() != Piece.PieceType.KING_UNMOVED || isKingInCheck()) {
             return false;
         }
 
         Piece rightCornerSquare = boardLayout[kingRow][7];
-        if (rightCornerSquare == null || rightCornerSquare.getPieceType() != Piece.PieceType.ROOK ||
-                rightCornerSquare.getHasMoved() || rightCornerSquare.getColor() != turnPlayerColor) {
+        if (rightCornerSquare == null || rightCornerSquare.getPieceType() != Piece.PieceType.ROOK_UNMOVED||
+                rightCornerSquare.getColor() != turnPlayerColor) {
             return false;
         }
 
@@ -343,7 +290,7 @@ class Board {
         return true;
     }
 
-    static Piece.Color getOppositeTurnPlayerColor(Piece.Color currentTurnPlayerColor) {
+    private static Piece.Color getOppositeTurnPlayerColor(Piece.Color currentTurnPlayerColor) {
         if (currentTurnPlayerColor == Piece.Color.WHITE) {
             return Piece.Color.BLACK;
         } else {
@@ -351,40 +298,65 @@ class Board {
         }
     }
 
-    Board movePieceOnNewBoard(int currentRow, int currentColumn, int targetRow, int targetColumn,
-                              Piece.Color newBoardColor) {
+    private Board movePieceOnNewBoard(int currentRow, int currentColumn, int targetRow, int targetColumn,
+                                      Piece.Color newBoardColor) {
         Board newBoard = new Board(newBoardColor, whiteKingPosition, blackKingPosition, boardLayout);
-        Piece.PieceType currentPieceType =  boardLayout[currentRow][currentColumn].getPieceType();
 
-        //Update the king's position on the new board, if the king is the piece that moved.
-        if (currentPieceType == Piece.PieceType.KING) {
-            if (turnPlayerColor == Piece.Color.WHITE) {
-                newBoard.whiteKingPosition = new int[]{targetRow, targetColumn};
-            } else {
-                newBoard.blackKingPosition = new int[]{targetRow, targetColumn};
-            }
-        }
+        Piece.PieceType currentPieceType = checkAndAlterMovingPieceType(boardLayout[currentRow][currentColumn].getPieceType());
+        Piece.Color currentPieceColor =  boardLayout[currentRow][currentColumn].getColor();
 
-        for (int newBoardRow = 0; newBoardRow < 8; newBoardRow++) {
-            for (int newBoardColumn = 0; newBoardColumn < 8; newBoardColumn++) {
+        newBoard.checkAndUpdateKingPosition(targetRow, targetColumn, currentPieceType);
+
+        for (int newBoardRow = 0; newBoardRow <= 7; newBoardRow++) {
+            for (int newBoardColumn = 0; newBoardColumn <= 7; newBoardColumn++) {
                 if (newBoardRow == targetRow && newBoardColumn == targetColumn) {
-                    newBoard.boardLayout[newBoardRow][newBoardColumn] = boardLayout[currentRow][currentColumn];
-                    newBoard.boardLayout[newBoardRow][newBoardColumn].setHasMoved(true);
-                } else if (newBoardRow == currentRow && newBoardColumn == currentColumn) {
+                    newBoard.boardLayout[newBoardRow][newBoardColumn] = new Piece(currentPieceColor, currentPieceType);
+                } else if ((boardLayout[newBoardRow][newBoardColumn] == null) ||
+                        (newBoardRow == currentRow && newBoardColumn == currentColumn)) {
                     newBoard.boardLayout[newBoardRow][newBoardColumn] = null;
                 } else {
-                    newBoard.boardLayout[newBoardRow][newBoardColumn] = boardLayout[newBoardRow][newBoardColumn];
+                    Piece thisTilePiece = boardLayout[newBoardRow][newBoardColumn];
+                    newBoard.boardLayout[newBoardRow][newBoardColumn] = new Piece(thisTilePiece.getColor(),
+                            thisTilePiece.getPieceType());
                 }
             }
         }
-        if (currentPieceType == Piece.PieceType.KING && targetColumn - currentColumn == 2) {
-            newBoard.boardLayout[currentRow][currentColumn + 1] = newBoard.boardLayout[currentRow][7];
-            newBoard.boardLayout[currentRow][7] = null;
-        } else if (currentPieceType == Piece.PieceType.KING && targetColumn - currentColumn == -2) {
-            newBoard.boardLayout[currentRow][currentColumn - 1] = newBoard.boardLayout[currentRow][0];
-            newBoard.boardLayout[currentRow][0] = null;
-        }
+        newBoard.checkAndAdjustRookAfterCastling(currentRow, currentColumn, targetColumn, currentPieceType);
         return newBoard;
+    }
+
+    private Piece.PieceType checkAndAlterMovingPieceType(Piece.PieceType movingPieceType) {
+        if (movingPieceType == Piece.PieceType.PAWN_UNMOVED) {
+            return Piece.PieceType.PAWN;
+        } else if (movingPieceType == Piece.PieceType.ROOK_UNMOVED) {
+            return Piece.PieceType.ROOK;
+        } else if (movingPieceType == Piece.PieceType.KING_UNMOVED) {
+            return Piece.PieceType.KING;
+        }
+        return movingPieceType;
+    }
+
+    private void checkAndAdjustRookAfterCastling(int currentRow, int currentColumn, int targetColumn,
+                                                 Piece.PieceType currentPieceType) {
+        if (currentPieceType == Piece.PieceType.KING) {
+            if (targetColumn - currentColumn == 2) {
+                boardLayout[currentRow][currentColumn + 1] = new Piece(turnPlayerColor, Piece.PieceType.ROOK);
+                boardLayout[currentRow][7] = null;
+            } else if (targetColumn - currentColumn == -2) {
+                boardLayout[currentRow][currentColumn - 1] = new Piece(turnPlayerColor, Piece.PieceType.ROOK);
+                boardLayout[currentRow][0] = null;
+            }
+        }
+    }
+
+    private void checkAndUpdateKingPosition(int row, int column, Piece.PieceType currentPieceType) {
+        if (currentPieceType == Piece.PieceType.KING) {
+            if (turnPlayerColor == Piece.Color.WHITE) {
+                whiteKingPosition = new int[]{row, column};
+            } else {
+                blackKingPosition = new int[]{row, column};
+            }
+        }
     }
 
     private void emptyBoardLayout() {
@@ -395,26 +367,25 @@ class Board {
         emptyBoardLayout();
         turnPlayerColor = Piece.Color.WHITE;
         for (int i = 0; i <= 7; i++) {
-            boardLayout[4][i] = new Piece(Piece.Color.BLACK, Piece.PieceType.PAWN, false);
-            boardLayout[6][i] = new Piece(Piece.Color.WHITE, Piece.PieceType.PAWN, false);
+            boardLayout[4][i] = new Piece(Piece.Color.BLACK, Piece.PieceType.PAWN_UNMOVED);
+            boardLayout[6][i] = new Piece(Piece.Color.WHITE, Piece.PieceType.PAWN_UNMOVED);
         }
-        boardLayout[0][0] = boardLayout[0][7] = new Piece(Piece.Color.BLACK, Piece.PieceType.ROOK, false);
-        boardLayout[7][0] = boardLayout[7][7] = new Piece(Piece.Color.WHITE, Piece.PieceType.ROOK, false);
-        boardLayout[0][1] = boardLayout[0][6] = new Piece(Piece.Color.BLACK, Piece.PieceType.KNIGHT, false);
-//        boardLayout[7][1] = boardLayout[7][6] = new Piece(Piece.Color.WHITE, Piece.PieceType.KNIGHT, false);
-//        boardLayout[0][2] = boardLayout[0][5] = new Piece(Piece.Color.BLACK, Piece.PieceType.BISHOP, false);
-//        boardLayout[7][2] = boardLayout[7][5] = new Piece(Piece.Color.WHITE, Piece.PieceType.BISHOP, false);
-        boardLayout[0][3] = new Piece(Piece.Color.BLACK, Piece.PieceType.QUEEN, false);
+        boardLayout[0][0] = boardLayout[0][7] = new Piece(Piece.Color.BLACK, Piece.PieceType.ROOK_UNMOVED);
+        boardLayout[7][0] = boardLayout[7][7] = new Piece(Piece.Color.WHITE, Piece.PieceType.ROOK_UNMOVED);
+        boardLayout[0][1] = boardLayout[0][6] = new Piece(Piece.Color.BLACK, Piece.PieceType.KNIGHT);
+//        boardLayout[7][1] = boardLayout[7][6] = new Piece(Piece.Color.WHITE, Piece.PieceType.KNIGHT);
+//        boardLayout[0][2] = boardLayout[0][5] = new Piece(Piece.Color.BLACK, Piece.PieceType.BISHOP);
+//        boardLayout[7][2] = boardLayout[7][5] = new Piece(Piece.Color.WHITE, Piece.PieceType.BISHOP);
+        boardLayout[0][3] = new Piece(Piece.Color.BLACK, Piece.PieceType.QUEEN);
 //        boardLayout[7][3] = new Piece(Piece.Color.WHITE, Piece.PieceType.QUEEN, false);
-        boardLayout[0][4] = new Piece(Piece.Color.BLACK, Piece.PieceType.KING, false);
-        boardLayout[7][4] = new Piece(Piece.Color.WHITE, Piece.PieceType.KING, false);
+        boardLayout[0][4] = new Piece(Piece.Color.BLACK, Piece.PieceType.KING_UNMOVED);
+        boardLayout[7][4] = new Piece(Piece.Color.WHITE, Piece.PieceType.KING_UNMOVED);
         previousBoardLayout = boardLayout.clone();
         boardLayout[6][6] = boardLayout[4][6];
-        boardLayout[6][6].setHasMoved(true);
         boardLayout[4][6] = null;
     }
 
-    public Piece[][] getBoardLayout() {
+    Piece[][] getBoardLayout() {
         return boardLayout;
     }
 
@@ -422,7 +393,7 @@ class Board {
         this.boardLayout = boardLayout;
     }
 
-    public Piece[][] getPreviousBoardLayout() {
+    Piece[][] getPreviousBoardLayout() {
         return previousBoardLayout;
     }
 
@@ -430,7 +401,7 @@ class Board {
         this.boardLayout = previousBoardLayout;
     }
 
-    public Piece.Color getTurnPlayerColor() {
+    Piece.Color getTurnPlayerColor() {
         return turnPlayerColor;
     }
 
@@ -438,7 +409,7 @@ class Board {
         this.turnPlayerColor = turnPlayerColor;
     }
 
-    public int[] getWhiteKingPosition() {
+    int[] getWhiteKingPosition() {
         return whiteKingPosition;
     }
 
@@ -446,7 +417,7 @@ class Board {
         this.whiteKingPosition = whiteKingPosition;
     }
 
-    public int[] getBlackKingPosition() {
+    int[] getBlackKingPosition() {
         return blackKingPosition;
     }
 
@@ -454,20 +425,10 @@ class Board {
         this.blackKingPosition = blackKingPosition;
     }
 
-    public void printBoardLayout() {
+    void printBoardLayout() {
         for (Piece[] currentRow : boardLayout) {
             for (Piece j : currentRow) {
                 System.out.print(j + ", ");
-            }
-            System.out.println();
-        }
-        for (Piece[] currentRow : boardLayout) {
-            for (Piece j : currentRow) {
-                if (j == null) {
-                    System.out.print("null, ");
-                } else {
-                    System.out.print(j.getHasMoved() + ",");
-                }
             }
             System.out.println();
         }
