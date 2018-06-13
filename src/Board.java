@@ -1,4 +1,5 @@
 import java.util.*;
+import java.lang.Math.*;
 //promotion, en passant
 
 class Board {
@@ -50,6 +51,12 @@ class Board {
                     List<Board> possibleBoards = new ArrayList<>();
                     Piece currentPiece = boardLayout[i][j];
 
+                    if (currentPiece.getPieceType() == Piece.PieceType.PAWN_UNMOVED) {
+                        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\n");
+                        printBoardLayout();
+                        System.out.println();
+                        printPreviousBoardLayout();
+                    }
                     List<int[]> possibleMoves = currentPiece.getPieceType().getPossibleMoves(i, j, this, false);
                     for (int[] move : possibleMoves) {
                         possibleBoards.add(movePieceOnNewBoard(i, j, move[0], move[1], turnPlayerColor));
@@ -321,6 +328,7 @@ class Board {
                 }
             }
         }
+        newBoard.checkAndCaptureEnPassantPawn(currentRow, currentColumn, targetRow, targetColumn, currentPieceType);
         newBoard.checkAndAdjustRookAfterCastling(currentRow, currentColumn, targetColumn, currentPieceType);
         return newBoard;
     }
@@ -334,6 +342,15 @@ class Board {
             return Piece.PieceType.KING;
         }
         return movingPieceType;
+    }
+
+    private void checkAndCaptureEnPassantPawn(int currentRow, int currentColumn, int targetRow, int targetColumn,
+                                           Piece.PieceType currentPieceType) {
+        if (currentPieceType == Piece.PieceType.PAWN) {
+            if (previousBoardLayout[targetRow][targetColumn] == null && Math.abs(targetColumn - currentColumn) == 1) {
+                boardLayout[currentRow][targetColumn] = null;
+            }
+        }
     }
 
     private void checkAndAdjustRookAfterCastling(int currentRow, int currentColumn, int targetColumn,
@@ -359,6 +376,40 @@ class Board {
         }
     }
 
+    boolean canCaptureEnPassant(int currentRow, int targetColumn) {
+        int enPassantRow;
+        boolean canCaptureEnPassant;
+
+        if (turnPlayerColor == Piece.Color.WHITE) {
+            enPassantRow = currentRow - 2;
+        } else {
+            enPassantRow = currentRow + 2;
+        }
+
+        try {
+            canCaptureEnPassant = (targetColumn >= 0 && targetColumn <= 7 &&
+                    checkPreviousBoardForEnPassantCapture(currentRow, targetColumn, enPassantRow) &&
+                    checkCurrentBoardForEnPassantCapture(currentRow, targetColumn, enPassantRow));
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return false;
+        }
+        return canCaptureEnPassant;
+    }
+
+    private boolean checkPreviousBoardForEnPassantCapture(int currentRow, int targetColumn, int enPassantRow) {
+        return (previousBoardLayout[enPassantRow][targetColumn] != null &&
+                previousBoardLayout[enPassantRow][targetColumn].getPieceType() == Piece.PieceType.PAWN_UNMOVED &&
+                (previousBoardLayout[currentRow][targetColumn] == null ||
+                        previousBoardLayout[currentRow][targetColumn].getColor() == turnPlayerColor));
+    }
+
+    private boolean checkCurrentBoardForEnPassantCapture(int currentRow, int targetColumn, int enPassantRow) {
+        return (boardLayout[enPassantRow][targetColumn] == null &&
+                boardLayout[currentRow][targetColumn] != null &&
+                boardLayout[currentRow][targetColumn].getPieceType() == Piece.PieceType.PAWN &&
+                boardLayout[currentRow][targetColumn].getColor() != turnPlayerColor);
+    }
+
     private void emptyBoardLayout() {
         boardLayout = new Piece[8][8];
     }
@@ -373,15 +424,21 @@ class Board {
         boardLayout[0][0] = boardLayout[0][7] = new Piece(Piece.Color.BLACK, Piece.PieceType.ROOK_UNMOVED);
         boardLayout[7][0] = boardLayout[7][7] = new Piece(Piece.Color.WHITE, Piece.PieceType.ROOK_UNMOVED);
         boardLayout[0][1] = boardLayout[0][6] = new Piece(Piece.Color.BLACK, Piece.PieceType.KNIGHT);
-//        boardLayout[7][1] = boardLayout[7][6] = new Piece(Piece.Color.WHITE, Piece.PieceType.KNIGHT);
-//        boardLayout[0][2] = boardLayout[0][5] = new Piece(Piece.Color.BLACK, Piece.PieceType.BISHOP);
-//        boardLayout[7][2] = boardLayout[7][5] = new Piece(Piece.Color.WHITE, Piece.PieceType.BISHOP);
+        boardLayout[7][1] = boardLayout[7][6] = new Piece(Piece.Color.WHITE, Piece.PieceType.KNIGHT);
+        boardLayout[0][2] = boardLayout[0][5] = new Piece(Piece.Color.BLACK, Piece.PieceType.BISHOP);
+        boardLayout[7][2] = boardLayout[7][5] = new Piece(Piece.Color.WHITE, Piece.PieceType.BISHOP);
         boardLayout[0][3] = new Piece(Piece.Color.BLACK, Piece.PieceType.QUEEN);
-//        boardLayout[7][3] = new Piece(Piece.Color.WHITE, Piece.PieceType.QUEEN, false);
+        boardLayout[7][3] = new Piece(Piece.Color.WHITE, Piece.PieceType.QUEEN);
         boardLayout[0][4] = new Piece(Piece.Color.BLACK, Piece.PieceType.KING_UNMOVED);
         boardLayout[7][4] = new Piece(Piece.Color.WHITE, Piece.PieceType.KING_UNMOVED);
-        previousBoardLayout = boardLayout.clone();
-        boardLayout[6][6] = boardLayout[4][6];
+
+        for(int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                System.arraycopy(boardLayout[i], 0, previousBoardLayout[i], 0, 8);
+            }
+        }
+
+        boardLayout[6][6] = new Piece(Piece.Color.BLACK, Piece.PieceType.PAWN);
         boardLayout[4][6] = null;
     }
 
@@ -427,6 +484,15 @@ class Board {
 
     void printBoardLayout() {
         for (Piece[] currentRow : boardLayout) {
+            for (Piece j : currentRow) {
+                System.out.print(j + ", ");
+            }
+            System.out.println();
+        }
+    }
+
+    void printPreviousBoardLayout() {
+        for (Piece[] currentRow : previousBoardLayout) {
             for (Piece j : currentRow) {
                 System.out.print(j + ", ");
             }

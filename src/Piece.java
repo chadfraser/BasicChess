@@ -37,42 +37,25 @@ class Piece {
                 // move down the board (along the row array in the positive direction)
                 if (currentBoard.getTurnPlayerColor() == Color.WHITE) {
                     targetRow = row - 1;
-                    enPassantTargetRow = row - 2;
                 } else {
                     targetRow = row + 1;
-                    enPassantTargetRow = row + 2;
                 }
 
                 if (boardLayout[targetRow][column] == null) {
                     possibleMoves.add(new int[]{targetRow, column});
                 }
-
-                if (column > 0 &&
-                        ((boardLayout[targetRow][column - 1] != null &&
-                                boardLayout[targetRow][column - 1].color != currentBoard.getTurnPlayerColor()) ||
-                            (previousBoardLayout[enPassantTargetRow][column - 1] != null &&
-                                previousBoardLayout[enPassantTargetRow][column - 1].getPieceType() == PAWN_UNMOVED &&
-                                boardLayout[enPassantTargetRow][column - 1] == null &&
-                                previousBoardLayout[row][column - 1] == null &&
-                                boardLayout[row][column - 1].getPieceType() == PAWN))) {
+                if (currentBoard.canCaptureEnPassant(row, column - 1)) {
                     possibleMoves.add(new int[]{targetRow, column - 1});
                 }
-                if (column < 7 &&
-                        (boardLayout[targetRow][column + 1] != null &&
-                                boardLayout[targetRow][column + 1].color != currentBoard.getTurnPlayerColor()) ||
-                            (previousBoardLayout[enPassantTargetRow][column + 1] != null &&
-                                previousBoardLayout[enPassantTargetRow][column + 1].getPieceType() == PAWN_UNMOVED &&
-                                boardLayout[enPassantTargetRow][column + 1] == null &&
-                                previousBoardLayout[row][column + 1] == null &&
-                                boardLayout[row][column + 1].getPieceType() == PAWN)) {
-                    possibleMoves.add(new int[]{row, column + 1});
+                if (currentBoard.canCaptureEnPassant(row, column + 1)) {
+                    possibleMoves.add(new int[]{targetRow, column + 1});
                 }
                 return possibleMoves;
             }
         },
 
 
-        PAWN_UNMOVED("P") {
+        PAWN_UNMOVED("p") {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard,
                                                 boolean isCurrentlyTestingCheck) {
