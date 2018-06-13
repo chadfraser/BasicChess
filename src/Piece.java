@@ -69,7 +69,7 @@ class Piece {
             }
         },
 
-        KNIGHT("K") {
+        KNIGHT("N") {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard, boolean thisPieceHasMoved,
                                                 boolean isCurrentlyTestingCheck)  {
