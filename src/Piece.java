@@ -29,6 +29,7 @@ class Piece {
                 assert (row > 0 && row < 7) : "Pawns cannot start the turn on the first or last row.";
 
                 Piece[][] boardLayout = currentBoard.getBoardLayout();
+                Piece[][] previousBoardLayout = currentBoard.getPreviousBoardLayout();
                 List<int[]> possibleMoves = new ArrayList<>();
                 int targetRow;
                 int enPassantTargetRow;
@@ -49,13 +50,29 @@ class Piece {
                         possibleMoves.add(new int[]{enPassantTargetRow, column});
                     }
                 }
-                if (column > 0 && boardLayout[targetRow][column - 1] != null &&
-                        boardLayout[targetRow][column - 1].color != currentBoard.getTurnPlayerColor()) {
-                    possibleMoves.add(new int[]{targetRow, column - 1});
-                }
-                if (column < 7 && boardLayout[targetRow][column + 1] != null &&
-                        boardLayout[targetRow][column + 1].color != currentBoard.getTurnPlayerColor()) {
-                    possibleMoves.add(new int[]{targetRow, column + 1});
+
+                try {
+                    if (column > 0 &&
+                            ((boardLayout[targetRow][column - 1] != null &&
+                                    boardLayout[targetRow][column - 1].color != currentBoard.getTurnPlayerColor()) ||
+                                    (previousBoardLayout[enPassantTargetRow][column - 1] != null &&
+                                            previousBoardLayout[enPassantTargetRow][column - 1].getPieceType() == PAWN &&
+                                            previousBoardLayout[targetRow][column - 1] == null &&
+                                            boardLayout[enPassantTargetRow][column - 1] == null &&
+                                            boardLayout[targetRow][column - 1].getPieceType() == PAWN))) {
+                        possibleMoves.add(new int[]{targetRow, column - 1});
+                    }
+                    if ((column < 7 && boardLayout[targetRow][column + 1] != null &&
+                            boardLayout[targetRow][column + 1].color != currentBoard.getTurnPlayerColor()) ||
+                            (column < 7 && previousBoardLayout[enPassantTargetRow][column + 1] != null &&
+                                    previousBoardLayout[enPassantTargetRow][column + 1].getPieceType() == PAWN &&
+                                    previousBoardLayout[targetRow][column + 1] == null &&
+                                    boardLayout[enPassantTargetRow][column + 1] == null &&
+                                    boardLayout[targetRow][column + 1].getPieceType() == PAWN)) {
+                        possibleMoves.add(new int[]{row, column + 1});
+                    }
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    e.printStackTrace();
                 }
                 return possibleMoves;
             }
@@ -72,7 +89,7 @@ class Piece {
         KNIGHT("N") {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard, boolean thisPieceHasMoved,
-                                                boolean isCurrentlyTestingCheck)  {
+                                                boolean isCurrentlyTestingCheck) {
                 Piece[][] boardLayout = currentBoard.getBoardLayout();
                 List<int[]> possibleMoves = new ArrayList<>();
                 int[][] allMoves = {{row - 1, column - 2}, {row - 1, column + 2},
@@ -102,7 +119,7 @@ class Piece {
         QUEEN("Q") {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard, boolean thisPieceHasMoved,
-                                                boolean isCurrentlyTestingCheck)  {
+                                                boolean isCurrentlyTestingCheck) {
                 List<int[]> possibleMoves = currentBoard.getDiagonalMoves(row, column);
                 possibleMoves.addAll(currentBoard.getOrthogonalMoves(row, column));
                 return possibleMoves;
@@ -112,7 +129,7 @@ class Piece {
         KING("K") {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard, boolean thisPieceHasMoved,
-                                                boolean isCurrentlyTestingCheck)  {
+                                                boolean isCurrentlyTestingCheck) {
                 assert ((currentBoard.getTurnPlayerColor() == Color.WHITE &&
                         currentBoard.getWhiteKingPosition() == new int[]{row,column}) ||
                         (currentBoard.getTurnPlayerColor() == Color.BLACK &&

@@ -2,22 +2,25 @@ import java.util.*;
 //promotion, en passant
 
 class Board {
-    private Piece[][] boardLayout;
     private Piece.Color turnPlayerColor;
     private int[] whiteKingPosition;
     private int[] blackKingPosition;
+    private Piece[][] boardLayout;
+    private Piece[][] previousBoardLayout;
 
     Board() {
         turnPlayerColor = Piece.Color.WHITE;
         whiteKingPosition = new int[]{7, 4};
         blackKingPosition = new int[]{0, 4};
         boardLayout = new Piece[8][8];
+        previousBoardLayout = new Piece[8][8];
     }
 
-    Board(Piece.Color turnPlayerColor, int[] whiteKingPosition, int[] blackKingPosition) {
+    Board(Piece.Color turnPlayerColor, int[] whiteKingPosition, int[] blackKingPosition, Piece[][] previousBoardLayout) {
         this.turnPlayerColor = turnPlayerColor;
         this.whiteKingPosition = whiteKingPosition;
         this.blackKingPosition = blackKingPosition;
+        this.previousBoardLayout = previousBoardLayout;
         boardLayout = new Piece[8][8];
     }
 
@@ -118,7 +121,7 @@ class Board {
                 int columnToMoveTo = currentMove[1];
 
                 Board newBoard = new Board(getOppositeTurnPlayerColor(turnPlayerColor), whiteKingPosition,
-                        blackKingPosition);
+                        blackKingPosition, boardLayout);
                 if (currentPiece.getPieceType() == Piece.PieceType.KING) {
                     if (turnPlayerColor == Piece.Color.WHITE) {
                         newBoard.whiteKingPosition = currentMove;
@@ -333,7 +336,7 @@ class Board {
         }
 
         for (int i = 1; i < 3; i++) {
-            if (boardLayout[kingRow][kingColumn + i] != null || isSquareUnderAttack(kingRow, kingColumn - i)) {
+            if (boardLayout[kingRow][kingColumn + i] != null || isSquareUnderAttack(kingRow, kingColumn + i)) {
                 return false;
             }
         }
@@ -350,7 +353,7 @@ class Board {
 
     Board movePieceOnNewBoard(int currentRow, int currentColumn, int targetRow, int targetColumn,
                               Piece.Color newBoardColor) {
-        Board newBoard = new Board(newBoardColor, whiteKingPosition, blackKingPosition);
+        Board newBoard = new Board(newBoardColor, whiteKingPosition, blackKingPosition, boardLayout);
         Piece.PieceType currentPieceType =  boardLayout[currentRow][currentColumn].getPieceType();
 
         //Update the king's position on the new board, if the king is the piece that moved.
@@ -366,6 +369,7 @@ class Board {
             for (int newBoardColumn = 0; newBoardColumn < 8; newBoardColumn++) {
                 if (newBoardRow == targetRow && newBoardColumn == targetColumn) {
                     newBoard.boardLayout[newBoardRow][newBoardColumn] = boardLayout[currentRow][currentColumn];
+                    newBoard.boardLayout[newBoardRow][newBoardColumn].setHasMoved(true);
                 } else if (newBoardRow == currentRow && newBoardColumn == currentColumn) {
                     newBoard.boardLayout[newBoardRow][newBoardColumn] = null;
                 } else {
@@ -391,7 +395,7 @@ class Board {
         emptyBoardLayout();
         turnPlayerColor = Piece.Color.WHITE;
         for (int i = 0; i <= 7; i++) {
-            boardLayout[1][i] = new Piece(Piece.Color.BLACK, Piece.PieceType.PAWN, false);
+            boardLayout[4][i] = new Piece(Piece.Color.BLACK, Piece.PieceType.PAWN, false);
             boardLayout[6][i] = new Piece(Piece.Color.WHITE, Piece.PieceType.PAWN, false);
         }
         boardLayout[0][0] = boardLayout[0][7] = new Piece(Piece.Color.BLACK, Piece.PieceType.ROOK, false);
@@ -404,6 +408,10 @@ class Board {
 //        boardLayout[7][3] = new Piece(Piece.Color.WHITE, Piece.PieceType.QUEEN, false);
         boardLayout[0][4] = new Piece(Piece.Color.BLACK, Piece.PieceType.KING, false);
         boardLayout[7][4] = new Piece(Piece.Color.WHITE, Piece.PieceType.KING, false);
+        previousBoardLayout = boardLayout.clone();
+        boardLayout[6][6] = boardLayout[4][6];
+        boardLayout[6][6].setHasMoved(true);
+        boardLayout[4][6] = null;
     }
 
     public Piece[][] getBoardLayout() {
@@ -412,6 +420,14 @@ class Board {
 
     public void setBoardLayout(Piece[][] boardLayout) {
         this.boardLayout = boardLayout;
+    }
+
+    public Piece[][] getPreviousBoardLayout() {
+        return previousBoardLayout;
+    }
+
+    public void setPreviousBoardLayout(Piece[][] previousBoardLayout) {
+        this.boardLayout = previousBoardLayout;
     }
 
     public Piece.Color getTurnPlayerColor() {
@@ -441,8 +457,17 @@ class Board {
     public void printBoardLayout() {
         for (Piece[] currentRow : boardLayout) {
             for (Piece j : currentRow) {
-                System.out.print(j);
-                System.out.print(", ");
+                System.out.print(j + ", ");
+            }
+            System.out.println();
+        }
+        for (Piece[] currentRow : boardLayout) {
+            for (Piece j : currentRow) {
+                if (j == null) {
+                    System.out.print("null, ");
+                } else {
+                    System.out.print(j.getHasMoved() + ",");
+                }
             }
             System.out.println();
         }

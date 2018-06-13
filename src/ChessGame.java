@@ -8,7 +8,6 @@ public class ChessGame {
 
     ChessGame() {
         Board gameBoard = new Board();
-        Scanner input = new Scanner(System.in);
 
         gameBoard.initializeBoardLayout();
 
