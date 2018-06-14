@@ -93,6 +93,22 @@ class Board {
         return mapOfLegalMoves;
     }
 
+    List<int[]> getPieceLegalMoves(int row, int column) {
+        List<int[]> possibleMoves = boardLayout[row][column].getPieceType().getPossibleMoves(row, column, this, false);
+        List<int[]> listOfLegalMoves = new ArrayList<>();
+
+        for (int[] currentMove : possibleMoves) {
+            int targetRow = currentMove[0];
+            int targetColumn = currentMove[1];
+
+            Board newBoard = movePieceOnNewBoard(row, column, targetRow, targetColumn, turnPlayerColor);
+            if (!newBoard.isKingInCheck()) {
+                listOfLegalMoves.add(currentMove);
+            }
+        }
+        return listOfLegalMoves;
+    }
+
     Map<int[], List<Board>> getAllLegalBoardStates() {
         Map<int[], List<Board>> mapOfBoardStates = getAllPossibleBoardStates();
 
@@ -302,8 +318,8 @@ class Board {
         }
     }
 
-    private Board movePieceOnNewBoard(int currentRow, int currentColumn, int targetRow, int targetColumn,
-                                      Piece.Color newBoardColor) {
+    Board movePieceOnNewBoard(int currentRow, int currentColumn, int targetRow, int targetColumn,
+                              Piece.Color newBoardColor) {
         Board newBoard = new Board(newBoardColor, whiteKingPosition, blackKingPosition, this);
 
         Piece.PieceType currentPieceType = checkAndAlterMovingPieceType(boardLayout[currentRow][currentColumn].getPieceType());
