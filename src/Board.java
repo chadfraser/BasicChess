@@ -393,7 +393,7 @@ class Board {
         previousBoard = new Board();
 
         for (int i = 0; i <= 7; i++) {
-            boardLayout[4][i] = new Piece(Piece.Color.BLACK, Piece.PieceType.PAWN_UNMOVED);
+            boardLayout[1][i] = new Piece(Piece.Color.BLACK, Piece.PieceType.PAWN_UNMOVED);
             boardLayout[6][i] = new Piece(Piece.Color.WHITE, Piece.PieceType.PAWN_UNMOVED);
         }
         boardLayout[0][0] = boardLayout[0][7] = new Piece(Piece.Color.BLACK, Piece.PieceType.ROOK_UNMOVED);
@@ -412,9 +412,6 @@ class Board {
                 System.arraycopy(boardLayout[i], 0, previousBoard.boardLayout[i], 0, 8);
             }
         }
-
-        boardLayout[6][6] = new Piece(Piece.Color.BLACK, Piece.PieceType.PAWN);
-        boardLayout[4][6] = null;
     }
 
     Piece[][] getBoardLayout() {

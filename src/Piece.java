@@ -141,7 +141,7 @@ class Piece {
                         {row + 2, column - 1}, {row + 2, column + 1}};
 
                 for (int[] i : allMoves) {
-                    if ((0 <= i[0] && i[0] <= Board.MAX_ROWS) && (0 <= i[1] && i[1] <= Board.MAX_COLUMNS) &&
+                    if ((0 <= i[0] && i[0] < Board.MAX_ROWS) && (0 <= i[1] && i[1] < Board.MAX_COLUMNS) &&
                             (boardLayout[i[0]][i[1]] == null ||
                                     boardLayout[i[0]][i[1]].color != currentBoard.getTurnPlayerColor())) {
                         possibleMoves.add(i);
@@ -187,7 +187,7 @@ class Piece {
                         {row + 1, column}, {row + 1, column + 1}};
 
                 for (int[] i : allMoves) {
-                    if ((0 <= i[0] && i[0] <= Board.MAX_ROWS) && (0 <= i[1] && i[1] <= Board.MAX_COLUMNS) &&
+                    if ((0 <= i[0] && i[0] < Board.MAX_ROWS) && (0 <= i[1] && i[1] < Board.MAX_COLUMNS) &&
                             (boardLayout[i[0]][i[1]] == null ||
                                     boardLayout[i[0]][i[1]].color != currentBoard.getTurnPlayerColor())) {
                         possibleMoves.add(i);
