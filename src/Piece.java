@@ -7,7 +7,7 @@ class Piece {
     private PieceType pieceType;
 
     public enum Color {
-        WHITE("W"), BLACK("B");
+        WHITE("White"), BLACK("Black");
 
         private String titleCaseColor;
         Color(String titleCaseColor) {
@@ -242,7 +242,7 @@ class Piece {
 
     @Override
     public String toString() {
-        return "[" + color + pieceType + "]";
+        return "[" + color.toString().charAt(0) + pieceType + "]";
     }
 
 
