@@ -133,16 +133,16 @@ class Board {
         }
     }
 
-    private boolean isCheckmate() {
+    boolean isCheckmate() {
         return (isKingInCheck() && areThereNoLegalMoves());
     }
 
-    private boolean isStalemate() {
+    boolean isStalemate() {
         return (!isKingInCheck() && areThereNoLegalMoves());
     }
 
     private boolean isSquareUnderAttack(int row, int column) {
-        turnPlayerColor = getOppositeTurnPlayerColor(turnPlayerColor);
+        turnPlayerColor = getOppositeTurnPlayerColor();
         for (int i = 0; i < MAX_ROWS; i++) {
             for (int j = 0; j < MAX_COLUMNS; j++) {
                 if (boardLayout[i][j] == null || boardLayout[i][j].getColor() != turnPlayerColor) {
@@ -151,18 +151,18 @@ class Board {
                 List<int[]> pieceMoves = boardLayout[i][j].getPieceType().getPossibleMoves(i, j, this, true);
                 for (int[] currentMove : pieceMoves) {
                     if (currentMove[0] == row && currentMove[1] == column) {
-                        turnPlayerColor = getOppositeTurnPlayerColor(turnPlayerColor);
+                        turnPlayerColor = getOppositeTurnPlayerColor();
                         return true;
                     }
                 }
             }
         }
-        turnPlayerColor = getOppositeTurnPlayerColor(turnPlayerColor);
+        turnPlayerColor = getOppositeTurnPlayerColor();
         return false;
     }
 
 
-    private void addMoveIfLegal(int targetRow, int targetColumn, List<int[]> possibleMoves) {
+    private void addMoveToListIfLegal(int targetRow, int targetColumn, List<int[]> possibleMoves) {
         if (targetRow < 0 || targetRow >= MAX_ROWS || targetColumn < 0 || targetColumn >= MAX_COLUMNS) {
             return;
         }
@@ -175,25 +175,25 @@ class Board {
     List<int[]> getOrthogonalMoves(int row, int column) {
         List<int[]> possibleMoves = new ArrayList<>();
         for (int i = row - 1; i >= 0; i--) {
-            addMoveIfLegal(i, column, possibleMoves);
+            addMoveToListIfLegal(i, column, possibleMoves);
             if (boardLayout[i][column] != null) {
                 break;
             }
         }
         for (int i = row + 1; i < MAX_ROWS; i++) {
-            addMoveIfLegal(i, column, possibleMoves);
+            addMoveToListIfLegal(i, column, possibleMoves);
             if (boardLayout[i][column] != null) {
                 break;
             }
         }
         for (int i = column - 1; i >= 0; i--) {
-            addMoveIfLegal(row, i, possibleMoves);
+            addMoveToListIfLegal(row, i, possibleMoves);
             if (boardLayout[row][i] != null) {
                 break;
             }
         }
         for (int i = column + 1; i < MAX_COLUMNS; i++) {
-            addMoveIfLegal(row, i, possibleMoves);
+            addMoveToListIfLegal(row, i, possibleMoves);
             if (boardLayout[row][i] != null) {
                 break;
             }
@@ -204,25 +204,25 @@ class Board {
     List<int[]> getDiagonalMoves(int row, int column) {
         List<int[]> possibleMoves = new ArrayList<>();
         for (int i = row - 1, j = column - 1; i >= 0 && j >= 0; i--, j--) {
-            addMoveIfLegal(i, j, possibleMoves);
+            addMoveToListIfLegal(i, j, possibleMoves);
             if (boardLayout[i][j] != null) {
                 break;
             }
         }
         for (int i = row - 1, j = column + 1; i >= 0 && j < MAX_COLUMNS; i--, j++) {
-            addMoveIfLegal(i, j, possibleMoves);
+            addMoveToListIfLegal(i, j, possibleMoves);
             if (boardLayout[i][j] != null) {
                 break;
             }
         }
         for (int i = row + 1, j = column - 1; i < MAX_ROWS && j >= 0; i++, j--) {
-            addMoveIfLegal(i, j, possibleMoves);
+            addMoveToListIfLegal(i, j, possibleMoves);
             if (boardLayout[i][j] != null) {
                 break;
             }
         }
         for (int i = row + 1, j = column + 1; i < MAX_ROWS && j < MAX_COLUMNS; i++, j++) {
-            addMoveIfLegal(i, j, possibleMoves);
+            addMoveToListIfLegal(i, j, possibleMoves);
             if (boardLayout[i][j] != null) {
                 break;
             }
@@ -294,8 +294,8 @@ class Board {
         return true;
     }
 
-    private static Piece.Color getOppositeTurnPlayerColor(Piece.Color currentTurnPlayerColor) {
-        if (currentTurnPlayerColor == Piece.Color.WHITE) {
+    Piece.Color getOppositeTurnPlayerColor() {
+        if (turnPlayerColor == Piece.Color.WHITE) {
             return Piece.Color.BLACK;
         } else {
             return Piece.Color.WHITE;
@@ -309,8 +309,6 @@ class Board {
         Piece.PieceType currentPieceType = checkAndAlterMovingPieceType(boardLayout[currentRow][currentColumn].getPieceType());
         Piece.Color currentPieceColor =  boardLayout[currentRow][currentColumn].getColor();
 
-        newBoard.checkAndUpdateKingPosition(targetRow, targetColumn, currentPieceType);
-
         for (int newBoardRow = 0; newBoardRow < MAX_ROWS; newBoardRow++) {
             for (int newBoardColumn = 0; newBoardColumn < MAX_COLUMNS; newBoardColumn++) {
                 if (newBoardRow == targetRow && newBoardColumn == targetColumn) {
@@ -319,16 +317,26 @@ class Board {
                         (newBoardRow == currentRow && newBoardColumn == currentColumn)) {
                     newBoard.boardLayout[newBoardRow][newBoardColumn] = null;
                 } else {
-                    Piece thisTilePiece = boardLayout[newBoardRow][newBoardColumn];
-                    newBoard.boardLayout[newBoardRow][newBoardColumn] = new Piece(thisTilePiece.getColor(),
-                            thisTilePiece.getPieceType());
+                    Piece thisSquarePiece = boardLayout[newBoardRow][newBoardColumn];
+                    newBoard.boardLayout[newBoardRow][newBoardColumn] = new Piece(thisSquarePiece.getColor(),
+                            thisSquarePiece.getPieceType());
                 }
             }
         }
-        newBoard.checkAndPromotePawn(targetRow, targetColumn, currentPieceType);
-        newBoard.checkAndCaptureEnPassantPawn(currentRow, currentColumn, targetRow, targetColumn, currentPieceType);
-        newBoard.checkAndAdjustRookAfterCastling(currentRow, currentColumn, targetColumn, currentPieceType);
+        newBoard.adjustBoardLayoutForUnusualSituations(currentRow, currentColumn, targetRow, targetColumn,
+                currentPieceType);
         return newBoard;
+    }
+
+    private void adjustBoardLayoutForUnusualSituations(int currentRow, int currentColumn, int targetRow,
+                                                       int targetColumn, Piece.PieceType currentPieceType) {
+        if (currentPieceType == Piece.PieceType.KING) {
+            checkAndUpdateKingPosition(targetRow, targetColumn);
+            checkAndAdjustRookAfterCastling(currentRow, currentColumn, targetColumn);
+        } else if (currentPieceType == Piece.PieceType.PAWN) {
+            checkAndPromotePawn(targetRow, targetColumn);
+            checkAndCaptureEnPassantPawn(currentRow, currentColumn, targetRow, targetColumn);
+        }
     }
 
     private Piece.PieceType checkAndAlterMovingPieceType(Piece.PieceType movingPieceType) {
@@ -342,44 +350,33 @@ class Board {
         return movingPieceType;
     }
 
-    private void checkAndPromotePawn(int targetRow, int targetColumn, Piece.PieceType currentPieceType) {
-        if (currentPieceType == Piece.PieceType.PAWN) {
-            if (targetRow == 0 || targetRow == MAX_ROWS - 1) {
-                boardLayout[targetRow][targetColumn] = new Piece(turnPlayerColor, Piece.PieceType.QUEEN);
-            }
+    private void checkAndPromotePawn(int targetRow, int targetColumn) {
+        if (targetRow == 0 || targetRow == MAX_ROWS - 1) {
+            boardLayout[targetRow][targetColumn] = new Piece(turnPlayerColor, Piece.PieceType.QUEEN);
         }
     }
 
-    private void checkAndCaptureEnPassantPawn(int currentRow, int currentColumn, int targetRow, int targetColumn,
-                                           Piece.PieceType currentPieceType) {
-        if (currentPieceType == Piece.PieceType.PAWN) {
-            if (previousBoard.boardLayout[targetRow][targetColumn] == null &&
-                    Math.abs(targetColumn - currentColumn) == 1) {
-                boardLayout[currentRow][targetColumn] = null;
-            }
+    private void checkAndCaptureEnPassantPawn(int currentRow, int currentColumn, int targetRow, int targetColumn) {
+        if (previousBoard.boardLayout[targetRow][targetColumn] == null && Math.abs(targetColumn - currentColumn) == 1) {
+            boardLayout[currentRow][targetColumn] = null;
         }
     }
 
-    private void checkAndAdjustRookAfterCastling(int currentRow, int currentColumn, int targetColumn,
-                                                 Piece.PieceType currentPieceType) {
-        if (currentPieceType == Piece.PieceType.KING) {
-            if (targetColumn - currentColumn == 2) {
-                boardLayout[currentRow][currentColumn + 1] = new Piece(turnPlayerColor, Piece.PieceType.ROOK);
-                boardLayout[currentRow][MAX_COLUMNS - 1] = null;
-            } else if (targetColumn - currentColumn == -2) {
-                boardLayout[currentRow][currentColumn - 1] = new Piece(turnPlayerColor, Piece.PieceType.ROOK);
-                boardLayout[currentRow][0] = null;
-            }
+    private void checkAndAdjustRookAfterCastling(int currentRow, int currentColumn, int targetColumn) {
+        if (targetColumn - currentColumn == 2) {
+            boardLayout[currentRow][currentColumn + 1] = new Piece(turnPlayerColor, Piece.PieceType.ROOK);
+            boardLayout[currentRow][MAX_COLUMNS - 1] = null;
+        } else if (targetColumn - currentColumn == -2) {
+            boardLayout[currentRow][currentColumn - 1] = new Piece(turnPlayerColor, Piece.PieceType.ROOK);
+            boardLayout[currentRow][0] = null;
         }
     }
 
-    private void checkAndUpdateKingPosition(int row, int column, Piece.PieceType currentPieceType) {
-        if (currentPieceType == Piece.PieceType.KING) {
-            if (turnPlayerColor == Piece.Color.WHITE) {
-                whiteKingPosition = new int[]{row, column};
-            } else {
-                blackKingPosition = new int[]{row, column};
-            }
+    private void checkAndUpdateKingPosition(int row, int column) {
+        if (turnPlayerColor == Piece.Color.WHITE) {
+            whiteKingPosition = new int[]{row, column};
+        } else {
+            blackKingPosition = new int[]{row, column};
         }
     }
 
