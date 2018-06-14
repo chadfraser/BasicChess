@@ -14,21 +14,18 @@ public class ChessGame {
 //        while (!checkmate && !stalemate) {
         gameBoard.printBoardLayout();
 
-        System.out.println("***");
-        gameBoard.printPreviousBoardLayout();
         Map<int[], List<Board>> allMoves = gameBoard.getAllLegalBoardStates();
         System.out.println("\n\n\n\n");
         for (Map.Entry<int[], List<Board>> entry : allMoves.entrySet()) {
-            System.out.println(entry.getKey()[0] + "," + entry.getKey()[1] + ":  ");
+            if (!entry.getValue().isEmpty()) {
+                System.out.println(entry.getKey()[0] + "," + entry.getKey()[1] + ":  ");
 
-            for (Board currentMove : entry.getValue()) {
-                currentMove.printBoardLayout();
-                System.out.println("***");
-                currentMove.printPreviousBoardLayout();
+                for (Board currentMove : entry.getValue()) {
+                    currentMove.printBoardLayout();
+                    System.out.println();
+                }
                 System.out.println();
-
             }
-            System.out.println();
         }
     }
 

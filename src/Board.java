@@ -392,7 +392,7 @@ class Board {
         turnPlayerColor = Piece.Color.WHITE;
         previousBoard = new Board();
 
-        for (int i = 0; i <= 7; i++) {
+        for (int i = 0; i < MAX_ROWS; i++) {
             boardLayout[1][i] = new Piece(Piece.Color.BLACK, Piece.PieceType.PAWN_UNMOVED);
             boardLayout[6][i] = new Piece(Piece.Color.WHITE, Piece.PieceType.PAWN_UNMOVED);
         }

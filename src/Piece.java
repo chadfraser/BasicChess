@@ -42,10 +42,14 @@ class Piece {
                 if (boardLayout[targetRow][column] == null) {
                     possibleMoves.add(new int[]{targetRow, column});
                 }
-                if (canCaptureEnPassant(row, column - 1, currentBoard)) {
+                if (canCaptureEnPassant(row, column - 1, currentBoard) ||
+                        (column > 0 && boardLayout[targetRow][column - 1] != null &&
+                        boardLayout[targetRow][column - 1].color != currentBoard.getTurnPlayerColor())) {
                     possibleMoves.add(new int[]{targetRow, column - 1});
                 }
-                if (canCaptureEnPassant(row, column + 1, currentBoard)) {
+                if (canCaptureEnPassant(row, column + 1, currentBoard) ||
+                        (column < Board.MAX_COLUMNS - 1 && boardLayout[targetRow][column + 1] != null &&
+                                boardLayout[targetRow][column + 1].color != currentBoard.getTurnPlayerColor())) {
                     possibleMoves.add(new int[]{targetRow, column + 1});
                 }
                 return possibleMoves;
