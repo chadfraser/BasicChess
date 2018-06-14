@@ -25,13 +25,11 @@ class Piece {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard,
                                                 boolean isCurrentlyTestingCheck) {
-                assert (row > 0 && row < 7) : "Pawns cannot start the turn on the first or last row.";
+                assert (row > 0 && row < Board.MAX_ROWS - 1) : "Pawns cannot start the turn on the first or last row.";
 
                 Piece[][] boardLayout = currentBoard.getBoardLayout();
-                Piece[][] previousBoardLayout = currentBoard.getPreviousBoardLayout();
                 List<int[]> possibleMoves = new ArrayList<>();
                 int targetRow;
-                int enPassantTargetRow;
 
                 // White pawns move up the board (along the row array in the negative direction) whereas black pawns
                 // move down the board (along the row array in the positive direction)
@@ -44,13 +42,52 @@ class Piece {
                 if (boardLayout[targetRow][column] == null) {
                     possibleMoves.add(new int[]{targetRow, column});
                 }
-                if (currentBoard.canCaptureEnPassant(row, column - 1)) {
+                if (canCaptureEnPassant(row, column - 1, currentBoard)) {
                     possibleMoves.add(new int[]{targetRow, column - 1});
                 }
-                if (currentBoard.canCaptureEnPassant(row, column + 1)) {
+                if (canCaptureEnPassant(row, column + 1, currentBoard)) {
                     possibleMoves.add(new int[]{targetRow, column + 1});
                 }
                 return possibleMoves;
+            }
+
+            boolean canCaptureEnPassant(int currentRow, int targetColumn, Board currentBoard) {
+                int enPassantRow;
+                boolean canCaptureEnPassant;
+
+                if (currentBoard.getTurnPlayerColor() == Piece.Color.WHITE) {
+                    enPassantRow = currentRow - 2;
+                } else {
+                    enPassantRow = currentRow + 2;
+                }
+
+                try {
+                    canCaptureEnPassant = (targetColumn >= 0 && targetColumn < Board.MAX_COLUMNS &&
+                            checkPreviousBoardForEnPassantCapture(currentRow, targetColumn, enPassantRow,
+                                    currentBoard.getPreviousBoard()) &&
+                            checkCurrentBoardForEnPassantCapture(currentRow, targetColumn, enPassantRow, currentBoard));
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    return false;
+                }
+                return canCaptureEnPassant;
+            }
+
+            private boolean checkPreviousBoardForEnPassantCapture(int currentRow, int targetColumn, int enPassantRow,
+                                                                  Board previousBoard) {
+                Piece[][] previousBoardLayout = previousBoard.getBoardLayout();
+                return (previousBoardLayout[enPassantRow][targetColumn] != null &&
+                        previousBoardLayout[enPassantRow][targetColumn].getPieceType() == Piece.PieceType.PAWN_UNMOVED &&
+                        (previousBoardLayout[currentRow][targetColumn] == null ||
+                            previousBoardLayout[currentRow][targetColumn].getColor() == previousBoard.getTurnPlayerColor()));
+            }
+
+            private boolean checkCurrentBoardForEnPassantCapture(int currentRow, int targetColumn, int enPassantRow,
+                                                                 Board currentBoard) {
+                Piece[][] boardLayout = currentBoard.getBoardLayout();
+                return (boardLayout[enPassantRow][targetColumn] == null &&
+                        boardLayout[currentRow][targetColumn] != null &&
+                        boardLayout[currentRow][targetColumn].getPieceType() == Piece.PieceType.PAWN &&
+                        boardLayout[currentRow][targetColumn].getColor() != currentBoard.getTurnPlayerColor());
             }
         },
 
@@ -104,7 +141,7 @@ class Piece {
                         {row + 2, column - 1}, {row + 2, column + 1}};
 
                 for (int[] i : allMoves) {
-                    if ((0 <= i[0] && i[0] <= 7) && (0 <= i[1] && i[1] <= 7) &&
+                    if ((0 <= i[0] && i[0] <= Board.MAX_ROWS) && (0 <= i[1] && i[1] <= Board.MAX_COLUMNS) &&
                             (boardLayout[i[0]][i[1]] == null ||
                                     boardLayout[i[0]][i[1]].color != currentBoard.getTurnPlayerColor())) {
                         possibleMoves.add(i);
@@ -150,7 +187,7 @@ class Piece {
                         {row + 1, column}, {row + 1, column + 1}};
 
                 for (int[] i : allMoves) {
-                    if ((0 <= i[0] && i[0] <= 7) && (0 <= i[1] && i[1] <= 7) &&
+                    if ((0 <= i[0] && i[0] <= Board.MAX_ROWS) && (0 <= i[1] && i[1] <= Board.MAX_COLUMNS) &&
                             (boardLayout[i[0]][i[1]] == null ||
                                     boardLayout[i[0]][i[1]].color != currentBoard.getTurnPlayerColor())) {
                         possibleMoves.add(i);

@@ -3,34 +3,37 @@ import java.lang.Math.*;
 //promotion, en passant
 
 class Board {
+    static final int MAX_ROWS = 8;
+    static final int MAX_COLUMNS = 8;
+
     private Piece.Color turnPlayerColor;
     private int[] whiteKingPosition;
     private int[] blackKingPosition;
     private Piece[][] boardLayout;
-    private Piece[][] previousBoardLayout;
+    private Board previousBoard;
 
     Board() {
         turnPlayerColor = Piece.Color.WHITE;
         whiteKingPosition = new int[]{7, 4};
         blackKingPosition = new int[]{0, 4};
-        boardLayout = new Piece[8][8];
-        previousBoardLayout = new Piece[8][8];
+        boardLayout = new Piece[MAX_ROWS][MAX_COLUMNS];
+        previousBoard = null;
     }
 
     private Board(Piece.Color turnPlayerColor, int[] whiteKingPosition, int[] blackKingPosition,
-                  Piece[][] previousBoardLayout) {
+                  Board previousBoard) {
         this.turnPlayerColor = turnPlayerColor;
         this.whiteKingPosition = whiteKingPosition;
         this.blackKingPosition = blackKingPosition;
-        this.previousBoardLayout = previousBoardLayout;
-        boardLayout = new Piece[8][8];
+        this.previousBoard = previousBoard;
+        boardLayout = new Piece[MAX_ROWS][MAX_COLUMNS];
     }
 
     private Map<int[], List<int[]>> getAllPiecesPossibleMoves() {
         Map<int[], List<int[]>> mapOfPieceMoves = new HashMap<>();
 
-        for (int i = 0; i < boardLayout.length; i++) {
-            for (int j = 0; j < boardLayout[i].length; j++) {
+        for (int i = 0; i < MAX_ROWS; i++) {
+            for (int j = 0; j < MAX_COLUMNS; j++) {
                 if (boardLayout[i][j] != null && boardLayout[i][j].getColor() == turnPlayerColor) {
                     Piece currentPiece = boardLayout[i][j];
                     List<int[]> possibleMoves = currentPiece.getPieceType().getPossibleMoves(i, j, this, false);
@@ -44,19 +47,13 @@ class Board {
     private Map<int[], List<Board>> getAllPossibleBoardStates() {
         Map<int[], List<Board>> mapOfBoardStates = new HashMap<>();
 
-        for (int i = 0; i < boardLayout.length; i++) {
-            for (int j = 0; j < boardLayout[i].length; j++) {
+        for (int i = 0; i < MAX_ROWS; i++) {
+            for (int j = 0; j < MAX_COLUMNS; j++) {
                 if (boardLayout[i][j] != null && boardLayout[i][j].getColor() == turnPlayerColor) {
                     int[] piecePosition = new int[]{i, j};
                     List<Board> possibleBoards = new ArrayList<>();
                     Piece currentPiece = boardLayout[i][j];
 
-                    if (currentPiece.getPieceType() == Piece.PieceType.PAWN_UNMOVED) {
-                        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\n");
-                        printBoardLayout();
-                        System.out.println();
-                        printPreviousBoardLayout();
-                    }
                     List<int[]> possibleMoves = currentPiece.getPieceType().getPossibleMoves(i, j, this, false);
                     for (int[] move : possibleMoves) {
                         possibleBoards.add(movePieceOnNewBoard(i, j, move[0], move[1], turnPlayerColor));
@@ -146,8 +143,8 @@ class Board {
 
     private boolean isSquareUnderAttack(int row, int column) {
         turnPlayerColor = getOppositeTurnPlayerColor(turnPlayerColor);
-        for (int i = 0; i <= 7; i++) {
-            for (int j = 0; j <= 7; j++) {
+        for (int i = 0; i < MAX_ROWS; i++) {
+            for (int j = 0; j < MAX_COLUMNS; j++) {
                 if (boardLayout[i][j] == null || boardLayout[i][j].getColor() != turnPlayerColor) {
                     continue;
                 }
@@ -166,7 +163,7 @@ class Board {
 
 
     private void addMoveIfLegal(int targetRow, int targetColumn, List<int[]> possibleMoves) {
-        if (targetRow < 0 || targetRow > 7 || targetColumn < 0 || targetColumn > 7) {
+        if (targetRow < 0 || targetRow >= MAX_ROWS || targetColumn < 0 || targetColumn >= MAX_COLUMNS) {
             return;
         }
         if (boardLayout[targetRow][targetColumn] == null ||
@@ -183,7 +180,7 @@ class Board {
                 break;
             }
         }
-        for (int i = row + 1; i <= 7; i++) {
+        for (int i = row + 1; i < MAX_ROWS; i++) {
             addMoveIfLegal(i, column, possibleMoves);
             if (boardLayout[i][column] != null) {
                 break;
@@ -195,7 +192,7 @@ class Board {
                 break;
             }
         }
-        for (int i = column + 1; i <= 7; i++) {
+        for (int i = column + 1; i < MAX_COLUMNS; i++) {
             addMoveIfLegal(row, i, possibleMoves);
             if (boardLayout[row][i] != null) {
                 break;
@@ -212,19 +209,19 @@ class Board {
                 break;
             }
         }
-        for (int i = row - 1, j = column + 1; i >= 0 && j <= 7; i--, j++) {
+        for (int i = row - 1, j = column + 1; i >= 0 && j < MAX_COLUMNS; i--, j++) {
             addMoveIfLegal(i, j, possibleMoves);
             if (boardLayout[i][j] != null) {
                 break;
             }
         }
-        for (int i = row + 1, j = column - 1; i <= 7 && j >= 0; i++, j--) {
+        for (int i = row + 1, j = column - 1; i < MAX_ROWS && j >= 0; i++, j--) {
             addMoveIfLegal(i, j, possibleMoves);
             if (boardLayout[i][j] != null) {
                 break;
             }
         }
-        for (int i = row + 1, j = column + 1; i <= 7 && j <= 7; i++, j++) {
+        for (int i = row + 1, j = column + 1; i < MAX_ROWS && j < MAX_COLUMNS; i++, j++) {
             addMoveIfLegal(i, j, possibleMoves);
             if (boardLayout[i][j] != null) {
                 break;
@@ -283,7 +280,7 @@ class Board {
             return false;
         }
 
-        Piece rightCornerSquare = boardLayout[kingRow][7];
+        Piece rightCornerSquare = boardLayout[kingRow][MAX_COLUMNS - 1];
         if (rightCornerSquare == null || rightCornerSquare.getPieceType() != Piece.PieceType.ROOK_UNMOVED||
                 rightCornerSquare.getColor() != turnPlayerColor) {
             return false;
@@ -307,15 +304,15 @@ class Board {
 
     private Board movePieceOnNewBoard(int currentRow, int currentColumn, int targetRow, int targetColumn,
                                       Piece.Color newBoardColor) {
-        Board newBoard = new Board(newBoardColor, whiteKingPosition, blackKingPosition, boardLayout);
+        Board newBoard = new Board(newBoardColor, whiteKingPosition, blackKingPosition, this);
 
         Piece.PieceType currentPieceType = checkAndAlterMovingPieceType(boardLayout[currentRow][currentColumn].getPieceType());
         Piece.Color currentPieceColor =  boardLayout[currentRow][currentColumn].getColor();
 
         newBoard.checkAndUpdateKingPosition(targetRow, targetColumn, currentPieceType);
 
-        for (int newBoardRow = 0; newBoardRow <= 7; newBoardRow++) {
-            for (int newBoardColumn = 0; newBoardColumn <= 7; newBoardColumn++) {
+        for (int newBoardRow = 0; newBoardRow < MAX_ROWS; newBoardRow++) {
+            for (int newBoardColumn = 0; newBoardColumn < MAX_COLUMNS; newBoardColumn++) {
                 if (newBoardRow == targetRow && newBoardColumn == targetColumn) {
                     newBoard.boardLayout[newBoardRow][newBoardColumn] = new Piece(currentPieceColor, currentPieceType);
                 } else if ((boardLayout[newBoardRow][newBoardColumn] == null) ||
@@ -347,7 +344,8 @@ class Board {
     private void checkAndCaptureEnPassantPawn(int currentRow, int currentColumn, int targetRow, int targetColumn,
                                            Piece.PieceType currentPieceType) {
         if (currentPieceType == Piece.PieceType.PAWN) {
-            if (previousBoardLayout[targetRow][targetColumn] == null && Math.abs(targetColumn - currentColumn) == 1) {
+            if (previousBoard.boardLayout[targetRow][targetColumn] == null &&
+                    Math.abs(targetColumn - currentColumn) == 1) {
                 boardLayout[currentRow][targetColumn] = null;
             }
         }
@@ -358,7 +356,7 @@ class Board {
         if (currentPieceType == Piece.PieceType.KING) {
             if (targetColumn - currentColumn == 2) {
                 boardLayout[currentRow][currentColumn + 1] = new Piece(turnPlayerColor, Piece.PieceType.ROOK);
-                boardLayout[currentRow][7] = null;
+                boardLayout[currentRow][MAX_COLUMNS - 1] = null;
             } else if (targetColumn - currentColumn == -2) {
                 boardLayout[currentRow][currentColumn - 1] = new Piece(turnPlayerColor, Piece.PieceType.ROOK);
                 boardLayout[currentRow][0] = null;
@@ -376,47 +374,15 @@ class Board {
         }
     }
 
-    boolean canCaptureEnPassant(int currentRow, int targetColumn) {
-        int enPassantRow;
-        boolean canCaptureEnPassant;
-
-        if (turnPlayerColor == Piece.Color.WHITE) {
-            enPassantRow = currentRow - 2;
-        } else {
-            enPassantRow = currentRow + 2;
-        }
-
-        try {
-            canCaptureEnPassant = (targetColumn >= 0 && targetColumn <= 7 &&
-                    checkPreviousBoardForEnPassantCapture(currentRow, targetColumn, enPassantRow) &&
-                    checkCurrentBoardForEnPassantCapture(currentRow, targetColumn, enPassantRow));
-        } catch (ArrayIndexOutOfBoundsException e) {
-            return false;
-        }
-        return canCaptureEnPassant;
-    }
-
-    private boolean checkPreviousBoardForEnPassantCapture(int currentRow, int targetColumn, int enPassantRow) {
-        return (previousBoardLayout[enPassantRow][targetColumn] != null &&
-                previousBoardLayout[enPassantRow][targetColumn].getPieceType() == Piece.PieceType.PAWN_UNMOVED &&
-                (previousBoardLayout[currentRow][targetColumn] == null ||
-                        previousBoardLayout[currentRow][targetColumn].getColor() == turnPlayerColor));
-    }
-
-    private boolean checkCurrentBoardForEnPassantCapture(int currentRow, int targetColumn, int enPassantRow) {
-        return (boardLayout[enPassantRow][targetColumn] == null &&
-                boardLayout[currentRow][targetColumn] != null &&
-                boardLayout[currentRow][targetColumn].getPieceType() == Piece.PieceType.PAWN &&
-                boardLayout[currentRow][targetColumn].getColor() != turnPlayerColor);
-    }
-
     private void emptyBoardLayout() {
-        boardLayout = new Piece[8][8];
+        boardLayout = new Piece[MAX_ROWS][MAX_COLUMNS];
     }
 
     void initializeBoardLayout() {
         emptyBoardLayout();
         turnPlayerColor = Piece.Color.WHITE;
+        previousBoard = new Board();
+
         for (int i = 0; i <= 7; i++) {
             boardLayout[4][i] = new Piece(Piece.Color.BLACK, Piece.PieceType.PAWN_UNMOVED);
             boardLayout[6][i] = new Piece(Piece.Color.WHITE, Piece.PieceType.PAWN_UNMOVED);
@@ -432,9 +398,9 @@ class Board {
         boardLayout[0][4] = new Piece(Piece.Color.BLACK, Piece.PieceType.KING_UNMOVED);
         boardLayout[7][4] = new Piece(Piece.Color.WHITE, Piece.PieceType.KING_UNMOVED);
 
-        for(int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                System.arraycopy(boardLayout[i], 0, previousBoardLayout[i], 0, 8);
+        for(int i = 0; i < MAX_ROWS; i++) {
+            for (int j = 0; j < MAX_COLUMNS; j++) {
+                System.arraycopy(boardLayout[i], 0, previousBoard.boardLayout[i], 0, 8);
             }
         }
 
@@ -450,12 +416,12 @@ class Board {
         this.boardLayout = boardLayout;
     }
 
-    Piece[][] getPreviousBoardLayout() {
-        return previousBoardLayout;
+    Board getPreviousBoard() {
+        return previousBoard;
     }
 
-    public void setPreviousBoardLayout(Piece[][] previousBoardLayout) {
-        this.boardLayout = previousBoardLayout;
+    public void setPreviousBoard(Board previousBoard) {
+        this.previousBoard = previousBoard;
     }
 
     Piece.Color getTurnPlayerColor() {
@@ -492,7 +458,7 @@ class Board {
     }
 
     void printPreviousBoardLayout() {
-        for (Piece[] currentRow : previousBoardLayout) {
+        for (Piece[] currentRow : previousBoard.boardLayout) {
             for (Piece j : currentRow) {
                 System.out.print(j + ", ");
             }
