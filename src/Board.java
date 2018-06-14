@@ -1,6 +1,6 @@
 import java.util.*;
-import java.lang.Math.*;
-//promotion, en passant
+
+//promotion
 
 class Board {
     static final int MAX_ROWS = 8;
@@ -325,6 +325,7 @@ class Board {
                 }
             }
         }
+        newBoard.checkAndPromotePawn(targetRow, targetColumn, currentPieceType);
         newBoard.checkAndCaptureEnPassantPawn(currentRow, currentColumn, targetRow, targetColumn, currentPieceType);
         newBoard.checkAndAdjustRookAfterCastling(currentRow, currentColumn, targetColumn, currentPieceType);
         return newBoard;
@@ -339,6 +340,14 @@ class Board {
             return Piece.PieceType.KING;
         }
         return movingPieceType;
+    }
+
+    private void checkAndPromotePawn(int targetRow, int targetColumn, Piece.PieceType currentPieceType) {
+        if (currentPieceType == Piece.PieceType.PAWN) {
+            if (targetRow == 0 || targetRow == MAX_ROWS - 1) {
+                boardLayout[targetRow][targetColumn] = new Piece(turnPlayerColor, Piece.PieceType.QUEEN);
+            }
+        }
     }
 
     private void checkAndCaptureEnPassantPawn(int currentRow, int currentColumn, int targetRow, int targetColumn,
