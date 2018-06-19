@@ -8,6 +8,7 @@ class ChessGame {
     private Board gameBoard = new Board();
     private Scanner playerInput = new Scanner(System.in);
     private boolean hasResigned = false;
+    private int cumulativePlysWithoutPawnsMovingOrPiecesTaken = 0;
 
     private ChessGame() {
         gameBoard.initializeBoardLayout();
