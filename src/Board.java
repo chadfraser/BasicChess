@@ -1,6 +1,7 @@
 import java.util.*;
 
-//promotion
+//promotion, 3peat, 50, ai, record
+
 
 class Board {
     static final int MAX_ROWS = 8;
@@ -11,6 +12,7 @@ class Board {
     private int[] blackKingPosition;
     private Piece[][] boardLayout;
     private Board previousBoard;
+    private boolean pawnMovedOrPieceTaken;
 
     Board() {
         turnPlayerColor = Piece.Color.WHITE;
@@ -325,6 +327,10 @@ class Board {
         Piece.PieceType currentPieceType = checkAndAlterMovingPieceType(boardLayout[currentRow][currentColumn].getPieceType());
         Piece.Color currentPieceColor =  boardLayout[currentRow][currentColumn].getColor();
 
+        if (currentPieceType == Piece.PieceType.PAWN || boardLayout[targetRow][targetColumn] != null) {
+            newBoard.pawnMovedOrPieceTaken = true;
+        }
+
         for (int newBoardRow = 0; newBoardRow < MAX_ROWS; newBoardRow++) {
             for (int newBoardColumn = 0; newBoardColumn < MAX_COLUMNS; newBoardColumn++) {
                 if (newBoardRow == targetRow && newBoardColumn == targetColumn) {
@@ -468,20 +474,28 @@ class Board {
     }
 
     void printBoardLayout() {
+//        for (int i = 0; i < MAX_COLUMNS; i++) {
+//            System.out.print("####");
+//        }
+        System.out.println();
         for (Piece[] currentRow : boardLayout) {
+//            System.out.print("# ");
             for (Piece j : currentRow) {
-                System.out.print(j + ", ");
+                if (j == null) {
+                    System.out.print("[\u2001]");
+                } else {
+                    System.out.print("[" + j + "]");
+                }
             }
+//            System.out.println();
+//            for (int i = 0; i < MAX_COLUMNS; i++) {
+//                System.out.print("####");
+//            }
             System.out.println();
         }
     }
 
     void printPreviousBoardLayout() {
-        for (Piece[] currentRow : previousBoard.boardLayout) {
-            for (Piece j : currentRow) {
-                System.out.print(j + ", ");
-            }
-            System.out.println();
-        }
+        previousBoard.printBoardLayout();
     }
 }
