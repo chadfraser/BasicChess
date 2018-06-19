@@ -21,7 +21,7 @@ class Piece {
     }
 
     public enum PieceType {
-        PAWN("P") {
+        PAWN("P", '\u2659', '\u265F') {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard,
                                                 boolean isCurrentlyTestingCheck) {
@@ -96,7 +96,7 @@ class Piece {
         },
 
 
-        PAWN_UNMOVED("p") {
+        PAWN_UNMOVED("p", '\u2659', '\u265F') {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard,
                                                 boolean isCurrentlyTestingCheck) {
@@ -117,7 +117,7 @@ class Piece {
             }
         },
 
-        ROOK("R") {
+        ROOK("R", '\u2656', '\u265C') {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard,
                                                 boolean isCurrentlyTestingCheck) {
@@ -125,7 +125,7 @@ class Piece {
             }
         },
 
-        ROOK_UNMOVED("R") {
+        ROOK_UNMOVED("R", '\u2656', '\u265C') {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard,
                                                 boolean isCurrentlyTestingCheck) {
@@ -133,7 +133,7 @@ class Piece {
             }
         },
 
-        KNIGHT("N") {
+        KNIGHT("N", '\u2658', '\u265E') {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard,
                                                 boolean isCurrentlyTestingCheck) {
@@ -155,7 +155,7 @@ class Piece {
             }
         },
 
-        BISHOP("B") {
+        BISHOP("B", '\u2657', '\u265D') {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard,
                                                 boolean isCurrentlyTestingCheck) {
@@ -163,7 +163,7 @@ class Piece {
             }
         },
 
-        QUEEN("Q") {
+        QUEEN("Q", '\u2655', '\u265B') {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard,
                                                 boolean isCurrentlyTestingCheck) {
@@ -173,7 +173,7 @@ class Piece {
             }
         },
 
-        KING("K") {
+        KING("K", '\u2654', '\u265A') {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard,
                                                 boolean isCurrentlyTestingCheck) {
@@ -201,7 +201,7 @@ class Piece {
             }
         },
 
-        KING_UNMOVED("K") {
+        KING_UNMOVED("K", '\u2654', '\u265A') {
             @Override
             public List<int[]> getPossibleMoves(int row, int column, Board currentBoard,
                                                 boolean isCurrentlyTestingCheck) {
@@ -225,13 +225,25 @@ class Piece {
                                                      boolean isCurrentlyTestingCheck);
 
         private String chessNotationSymbol;
-        PieceType(String chessNotationSymbol) {
+        private char whitePieceSymbol;
+        private char blackPieceSymbol;
+        PieceType(String chessNotationSymbol, char whitePieceSymbol, char blackPieceSymbol) {
             this.chessNotationSymbol = chessNotationSymbol;
+            this.whitePieceSymbol = whitePieceSymbol;
+            this.blackPieceSymbol = blackPieceSymbol;
         }
 
         @Override
         public String toString() {
             return chessNotationSymbol;
+        }
+
+        public String getUnicodeSymbol(Color color) {
+            if (color == Color.WHITE) {
+                return Character.toString(whitePieceSymbol);
+            }
+            return Character.toString(blackPieceSymbol);
+
         }
     }
 
@@ -242,7 +254,7 @@ class Piece {
 
     @Override
     public String toString() {
-        return "[" + color.toString().charAt(0) + pieceType + "]";
+        return pieceType.getUnicodeSymbol(color);
     }
 
 
